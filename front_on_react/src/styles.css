@@ -5,6 +5,7 @@
   --crm-text: #1f2937;
   --crm-muted: #667085;
   --crm-primary: #2457a6;
+  --crm-footer-height: 48px;
 }
 
 * {
@@ -20,45 +21,73 @@ body {
 
 .app-shell {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
-.sidebar {
-  width: 280px;
-  background: #ffffff;
-  border-right: 1px solid var(--crm-line);
-  display: flex;
-  flex-direction: column;
-  padding: 18px;
-  gap: 18px;
-}
-
-.brand-block {
+.app-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-bottom: 12px;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 90px;
+  padding: 16px 24px;
+  background: var(--crm-panel);
   border-bottom: 1px solid var(--crm-line);
 }
 
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .brand-mark {
-  width: 44px;
-  height: 44px;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   background: var(--crm-primary);
   color: #fff;
-  font-weight: 700;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 600;
   border-radius: 8px;
 }
 
-.brand-title {
-  font-weight: 700;
+.brand-copy h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
 }
 
 .brand-caption {
   color: var(--crm-muted);
   font-size: 13px;
+  margin-top: 3px;
+}
+
+.header-account {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.account-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.account-name {
+  font-weight: 600;
+}
+
+.account-login {
+  color: var(--crm-muted);
+  font-weight: 400;
 }
 
 .nav-link {
@@ -75,10 +104,17 @@ body {
   font-weight: 700;
 }
 
-.sidebar-footer {
-  margin-top: auto;
-  border-top: 1px solid var(--crm-line);
-  padding-top: 16px;
+.app-body {
+  display: flex;
+  flex: 1 0 auto;
+}
+
+.sidebar {
+  flex: 0 0 280px;
+  width: 280px;
+  background: var(--crm-panel);
+  border-right: 1px solid var(--crm-line);
+  padding: 18px;
 }
 
 .content {
@@ -87,24 +123,24 @@ body {
   padding: 24px;
 }
 
-.topbar {
+.app-footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 22px;
+  flex: 0 0 var(--crm-footer-height);
+  margin-top: auto;
+  min-height: var(--crm-footer-height);
+  padding: 0 24px;
+  color: var(--crm-muted);
+  background: var(--crm-panel);
+  border-top: 1px solid var(--crm-line);
+  font-size: 13px;
 }
 
-.topbar h1,
 .section-header h2,
 .auth-panel h3,
 .task-card h3 {
   margin: 0;
   letter-spacing: 0;
-}
-
-.topbar h1 {
-  font-size: 28px;
 }
 
 .page-section {
@@ -149,6 +185,90 @@ body {
 
 .toolbar {
   padding: 14px;
+}
+
+.crm-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--crm-line);
+}
+
+.crm-tab {
+  position: relative;
+  margin-bottom: -1px;
+  padding: 10px 18px;
+  color: var(--crm-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+}
+
+.crm-tab:hover {
+  color: var(--crm-primary);
+  background: #f8fafc;
+}
+
+.crm-tab.active {
+  color: var(--crm-primary);
+  background: var(--crm-panel);
+  border-color: var(--crm-line) var(--crm-line) var(--crm-panel);
+  font-weight: 700;
+}
+
+.crm-tab:focus-visible {
+  outline: 2px solid var(--crm-primary);
+  outline-offset: 2px;
+}
+
+.crm-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.crm-tab-panel[hidden] {
+  display: none;
+}
+
+.crm-search-form {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.crm-search-fields {
+  display: grid;
+  width: min(100%, 360px);
+  gap: 8px;
+}
+
+.crm-search-form .btn {
+  min-width: 124px;
+}
+
+.crm-add-button {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.crm-data-table {
+  min-width: 760px;
+}
+
+.crm-contact-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 200px;
+  font-size: 13px;
+}
+
+.crm-contact-detail {
+  display: flex;
+  flex-direction: column;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid #edf0f4;
 }
 
 .panel,
@@ -232,12 +352,16 @@ body {
 }
 
 @media (max-width: 900px) {
-  .app-shell {
+  .app-body {
     flex-direction: column;
   }
 
   .sidebar {
     width: 100%;
+    flex-basis: auto;
+    padding: 12px 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--crm-line);
   }
 
   .nav {
@@ -245,12 +369,42 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .topbar,
   .section-header {
     flex-direction: column;
   }
 
   .content {
     padding: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+
+  .brand-copy h1 {
+    font-size: 23px;
+  }
+
+  .header-account {
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .app-footer {
+    padding: 0 16px;
+  }
+
+  .crm-search-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crm-search-fields {
+    width: 100%;
   }
 }

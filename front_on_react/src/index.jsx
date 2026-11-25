@@ -53,161 +53,280 @@ function App() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand-block">
-          <div className="brand-mark">CRM</div>
-          <div>
-            <div className="brand-title">Client Desk</div>
-            <div className="brand-caption">Макет MVP</div>
-          </div>
-        </div>
+      <AppHeader />
+      <div className="app-body">
+        <aside className="sidebar">
+          <nav className="nav flex-column gap-1" aria-label="Основная навигация">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`nav-link text-start ${activeTab === tab.id ? "active" : ""}`}
+                type="button"
+                aria-current={activeTab === tab.id ? "page" : undefined}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
 
-        <nav className="nav flex-column gap-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`nav-link text-start ${activeTab === tab.id ? "active" : ""}`}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="small text-secondary">Текущий пользователь</div>
-          <div className="fw-semibold">Анна Мельникова</div>
-          <span className="badge text-bg-light border">Руководитель</span>
-        </div>
-      </aside>
-
-      <main className="content">
-        <TopBar />
-        {activeTab === "clients" && <ClientsPage />}
-        {activeTab === "files" && <FilesPage />}
-        {activeTab === "tasks" && <TasksPage />}
-        {activeTab === "users" && <UsersPage />}
-        {activeTab === "auth" && <AuthPage />}
-      </main>
+        <main className="content">
+          {activeTab === "clients" && <ClientsPage />}
+          {activeTab === "files" && <FilesPage />}
+          {activeTab === "tasks" && <TasksPage />}
+          {activeTab === "users" && <UsersPage />}
+          {activeTab === "auth" && <AuthPage />}
+        </main>
+      </div>
+      <AppFooter />
     </div>
   );
 }
 
-function TopBar() {
+function AppHeader() {
   return (
-    <div className="topbar">
-      <div>
-        <h1>CRM система</h1>
-        <div className="text-secondary">Организации, контакты, файлы, задачи и пользователи</div>
+    <header className="app-header">
+      <div className="header-brand">
+        <div className="brand-mark" aria-hidden="true">O1</div>
+        <div className="brand-copy">
+          <h1>CRM система</h1>
+          <div className="brand-caption">Только нужное. Ничего лишнего</div>
+        </div>
       </div>
-      <div className="d-flex gap-2">
-        <button className="btn btn-outline-secondary btn-sm" type="button">
-          Экспорт
-        </button>
-        <button className="btn btn-primary btn-sm" type="button">
-          Создать
-        </button>
+
+      <div className="header-account">
+        <div className="account-details">
+          <div className="account-name">Анна Мельникова <span className="account-login">(amel1)</span></div>
+          <span className="badge text-bg-light border">Руководитель</span>
+        </div>
+        <button className="btn btn-outline-secondary btn-sm" type="button">Выйти</button>
       </div>
-    </div>
+    </header>
+  );
+}
+
+function AppFooter() {
+  return (
+    <footer className="app-footer">
+      <span>O1 · CRM система</span>
+    </footer>
   );
 }
 
 function ClientsPage() {
-  const [query, setQuery] = useState("");
-  const normalized = query.trim().toLowerCase();
+  const [activeTab, setActiveTab] = useState("organizations");
+  const [organizationQuery, setOrganizationQuery] = useState({ name: "", channels: "" });
+  const [appliedOrganizationQuery, setAppliedOrganizationQuery] = useState({ name: "", channels: "" });
+  const [contactQuery, setContactQuery] = useState({ name: "", phone: "" });
+  const [appliedContactQuery, setAppliedContactQuery] = useState({ name: "", phone: "" });
 
-  const filteredOrganizations = useMemo(() => {
-    if (!normalized) return organizations;
-    return organizations.filter((org) => {
-      const orgContacts = contacts.filter((contact) => contact.organizationId === org.id);
-      return [org.name, org.inn, org.phone, org.email, ...orgContacts.flatMap((contact) => [contact.name, contact.phone, contact.email])]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalized);
-    });
-  }, [normalized]);
+  const filteredOrganizations = useMemo(() => organizations.filter((org) => {
+    const linkedContacts = contacts.filter((contact) => contact.organizationId === org.id);
+    const nameMatches = !appliedOrganizationQuery.name.trim()
+      || org.name.toLowerCase().includes(appliedOrganizationQuery.name.trim().toLowerCase());
+    const channels = [org.phone, org.email, ...linkedContacts.flatMap((contact) => [contact.phone, contact.email])];
+    const channelsMatches = !appliedOrganizationQuery.channels.trim()
+      || channels.some((value) => value?.toLowerCase().includes(appliedOrganizationQuery.channels.trim().toLowerCase()));
+
+    return nameMatches && channelsMatches;
+  }), [appliedOrganizationQuery]);
+
+  const filteredContacts = useMemo(() => contacts.filter((contact) => {
+    const nameMatches = !appliedContactQuery.name.trim()
+      || contact.name.toLowerCase().includes(appliedContactQuery.name.trim().toLowerCase());
+    const phoneMatches = !appliedContactQuery.phone.trim()
+      || contact.phone.toLowerCase().includes(appliedContactQuery.phone.trim().toLowerCase());
+
+    return nameMatches && phoneMatches;
+  }), [appliedContactQuery]);
 
   return (
     <section className="page-section">
       <div className="section-header">
         <div>
           <h2>Организации и контакты</h2>
-          <p>Единый список клиентской базы с поиском по названию, ФИО, телефону, email и ИНН.</p>
-        </div>
-        <div className="actions">
-          <button className="btn btn-outline-primary btn-sm" type="button">
-            Добавить контакт
-          </button>
-          <button className="btn btn-primary btn-sm" type="button">
-            Добавить организацию
-          </button>
+          <p>Ищите организации и контакты на отдельных вкладках.</p>
         </div>
       </div>
 
-      <div className="toolbar">
-        <input
-          className="form-control"
-          placeholder="Поиск по клиентам, контактам, телефону, email или ИНН"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
+      <div className="crm-tabs" role="tablist" aria-label="Тип записей">
+        <button
+          id="organizations-tab"
+          className={`crm-tab ${activeTab === "organizations" ? "active" : ""}`}
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "organizations"}
+          aria-controls="organizations-panel"
+          onClick={() => setActiveTab("organizations")}
+        >
+          Организации
+        </button>
+        <button
+          id="contacts-tab"
+          className={`crm-tab ${activeTab === "contacts" ? "active" : ""}`}
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "contacts"}
+          aria-controls="contacts-panel"
+          onClick={() => setActiveTab("contacts")}
+        >
+          Контакты
+        </button>
       </div>
 
-      <div className="row g-3">
-        <div className="col-12 col-xl-7">
+      <div
+        id="organizations-panel"
+        className="crm-tab-panel"
+        role="tabpanel"
+        aria-labelledby="organizations-tab"
+        hidden={activeTab !== "organizations"}
+      >
+          <form
+            className="toolbar crm-search-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setAppliedOrganizationQuery(organizationQuery);
+            }}
+          >
+            <div className="crm-search-fields">
+              <input
+                className="form-control"
+                aria-label="Наименование организации"
+                placeholder="Наименование"
+                value={organizationQuery.name}
+                onChange={(event) => setOrganizationQuery({ ...organizationQuery, name: event.target.value })}
+              />
+              <input
+                className="form-control"
+                aria-label="Телефон или email организации"
+                placeholder="Телефон, email"
+                value={organizationQuery.channels}
+                onChange={(event) => setOrganizationQuery({ ...organizationQuery, channels: event.target.value })}
+              />
+            </div>
+            <button className="btn btn-primary" type="submit">Искать</button>
+            <button className="btn btn-primary crm-add-button" type="button">Добавить организацию</button>
+          </form>
+
           <div className="panel">
-            <div className="panel-title">Организации</div>
             <div className="table-responsive">
-              <table className="table align-middle mb-0">
+              <table className="table align-middle mb-0 crm-data-table">
                 <thead>
                   <tr>
-                    <th>Организация</th>
-                    <th>Контакты</th>
-                    <th>Статус</th>
-                    <th>Ответственный</th>
+                    <th scope="col">Id</th>
+                    <th scope="col">Наименование</th>
+                    <th scope="col">Контакты</th>
+                    <th scope="col">Комментарий</th>
+                    <th scope="col">Сотрудники</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredOrganizations.map((org) => (
-                    <tr key={org.id}>
-                      <td>
-                        <div className="fw-semibold">{org.name}</div>
-                        <div className="small text-secondary">{org.inn} · {org.email}</div>
-                      </td>
-                      <td>{contacts.filter((contact) => contact.organizationId === org.id).length}</td>
-                      <td>
-                        <span className={`badge ${statusClass(org.status)}`}>{org.status}</span>
-                      </td>
-                      <td>{userName(org.managerId)}</td>
-                    </tr>
-                  ))}
+                  {filteredOrganizations.length ? filteredOrganizations.map((org) => {
+                    const linkedContacts = contacts.filter((contact) => contact.organizationId === org.id);
+                    return (
+                      <tr key={org.id}>
+                        <td>{org.id}</td>
+                        <td>
+                          <div className="fw-semibold">{org.name}</div>
+                          <div className="small text-secondary">ИНН: {org.inn}</div>
+                        </td>
+                        <td>
+                          <div className="crm-contact-details">
+                            <div>{org.phone}</div>
+                            <div>{org.email}</div>
+                            {linkedContacts.map((contact) => (
+                              <div className="crm-contact-detail" key={contact.id}>
+                                <span className="fw-semibold">{contact.name}</span>
+                                <span>{contact.phone}</span>
+                                <span>{contact.email}</span>
+                                {contact.messenger && <span>{contact.messenger}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td>{org.comment || "—"}</td>
+                        <td>{userName(org.managerId)}</td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr><td className="text-center text-secondary py-4" colSpan="5">Ничего не найдено</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
+      </div>
+      <div
+        id="contacts-panel"
+        className="crm-tab-panel"
+        role="tabpanel"
+        aria-labelledby="contacts-tab"
+        hidden={activeTab !== "contacts"}
+      >
+          <form
+            className="toolbar crm-search-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setAppliedContactQuery(contactQuery);
+            }}
+          >
+            <div className="crm-search-fields">
+              <input
+                className="form-control"
+                aria-label="ФИО контакта"
+                placeholder="ФИО"
+                value={contactQuery.name}
+                onChange={(event) => setContactQuery({ ...contactQuery, name: event.target.value })}
+              />
+              <input
+                className="form-control"
+                aria-label="Телефон контакта"
+                placeholder="Телефон"
+                value={contactQuery.phone}
+                onChange={(event) => setContactQuery({ ...contactQuery, phone: event.target.value })}
+              />
+            </div>
+            <button className="btn btn-primary" type="submit">Искать</button>
+          </form>
 
-        <div className="col-12 col-xl-5">
           <div className="panel">
-            <div className="panel-title">Контакты</div>
-            <div className="contact-list">
-              {contacts.map((contact) => (
-                <div className="contact-item" key={contact.id}>
-                  <div>
-                    <div className="fw-semibold">{contact.name}</div>
-                    <div className="small text-secondary">{contact.position}</div>
-                    <div className="small">{orgName(contact.organizationId)}</div>
-                  </div>
-                  <div className="text-end small">
-                    <div>{contact.phone}</div>
-                    <div className="text-secondary">{contact.email}</div>
-                  </div>
-                </div>
-              ))}
+            <div className="table-responsive">
+              <table className="table align-middle mb-0 crm-data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">ФИО</th>
+                    <th scope="col">Контакты</th>
+                    <th scope="col">Комментарий</th>
+                    <th scope="col">Организация</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredContacts.length ? filteredContacts.map((contact) => (
+                    <tr key={contact.id}>
+                      <td>{contact.id}</td>
+                      <td>
+                        <div className="fw-semibold">{contact.name}</div>
+                        <div className="small text-secondary">{contact.position}</div>
+                      </td>
+                      <td>
+                        <div className="crm-contact-details">
+                          <div>{contact.phone}</div>
+                          <div>{contact.email}</div>
+                          <div>{contact.messenger || "—"}</div>
+                        </div>
+                      </td>
+                      <td>{contact.comment || "—"}</td>
+                      <td>{orgName(contact.organizationId)}</td>
+                    </tr>
+                  )) : (
+                    <tr><td className="text-center text-secondary py-4" colSpan="5">Ничего не найдено</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
       </div>
     </section>
   );
